@@ -1,7 +1,10 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
+	"os"
+	"strconv"
 	"unicode"
 )
 
@@ -11,35 +14,53 @@ func check(e error) {
 	}
 }
 
-func main() {
-	calVal := "treb7uchet"
+func firstAndLastDigit(text string) int {
 	firstNumberFound := false
-	fmt.Println(calVal)
-	var currentVal = []int{0, 0}
-	for _, r := range calVal {
+	fmt.Println(text)
+	var currentVal = []rune{'0', '0'}
+	var stringValue string
+	for _, r := range text {
 		if unicode.IsDigit(r) {
 			if !firstNumberFound {
 				firstNumberFound = true
-				currentVal[0] = int(r)
+				currentVal[0] = r
 			}
-			currentVal[1] = int(r)
+			currentVal[1] = r
 		}
 	}
-
-	fmt.Printf("%c", currentVal)
+	stringValue = string(currentVal[0])
+	stringValue += string(currentVal[1])
+	numberValue, err := strconv.Atoi(stringValue)
+	check(err)
+	return numberValue
 }
 
-// readFile, err := os.Open("input.txt")
-// check(err)
+func hasDigit(text string) bool {
+	for _, r := range text {
+		if unicode.IsDigit(r) {
+			return true
+		}
+	}
+	return false
+}
 
-// fileScanner := bufio.NewScanner(readFile)
+func main() {
+	readFile, err := os.Open("input.txt")
+	check(err)
 
-// fileScanner.Split(bufio.ScanLines)
+	fileScanner := bufio.NewScanner(readFile)
 
-// var count int = 0
-// for fileScanner.Scan() {
-// 	count++
-// 	fmt.Println("Line #", count, ":", fileScanner.Text())
-// }
-// fileScanner.Scan()
-// var calVal string = fileScanner.Text()
+	fileScanner.Split(bufio.ScanLines)
+
+	var calibrationValues []int
+	sumOfCalibrationValues := 0
+	for fileScanner.Scan() {
+		currentValue := firstAndLastDigit(fileScanner.Text())
+		calibrationValues = append(calibrationValues, currentValue)
+	}
+	for i := 0; i < len(calibrationValues); i++ {
+		sumOfCalibrationValues += calibrationValues[i]
+	}
+	fmt.Println("calibration values:", calibrationValues)
+	fmt.Println("sum of calibration values:", sumOfCalibrationValues)
+}
