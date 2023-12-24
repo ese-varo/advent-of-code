@@ -28,31 +28,22 @@ func check(e error) {
 }
 
 func findFirstAndLastDigit(text string) int {
-	firstDigit := lookaheadFindNumber(text)
-	lastDigit := lookbehindFindNumber(text)
+	firstDigit := findNumber(text, false)
+	lastDigit := findNumber(text, true)
 	twoDigitsNumber, _ := strconv.Atoi(string(firstDigit + lastDigit))
 	p(twoDigitsNumber)
 	return twoDigitsNumber
 }
 
-func lookaheadFindNumber(text string) string {
+func findNumber(text string, startFromEnd bool) string {
 	number := ""
 	i := 1
 	for len(number) == 0 {
-		number = hasNumber.FindString(text[0:i])
-		i++
-	}
-	if len(number) > 1 {
-		number = mappedNumbers[number]
-	}
-	return number
-}
-
-func lookbehindFindNumber(text string) string {
-	number := ""
-	i := 1
-	for len(number) == 0 {
-		number = hasNumber.FindString(text[len(text)-i:])
+		if startFromEnd {
+			number = hasNumber.FindString(text[len(text)-i:])
+		} else {
+			number = hasNumber.FindString(text[0:i])
+		}
 		i++
 	}
 	if len(number) > 1 {
