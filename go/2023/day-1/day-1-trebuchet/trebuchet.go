@@ -4,9 +4,22 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"regexp"
 	"strconv"
-	"unicode"
 )
+
+var mappedNumbers = map[string]string{
+	"one":   "1",
+	"two":   "2",
+	"three": "3",
+	"four":  "4",
+	"five":  "5",
+	"six":   "6",
+	"seven": "7",
+	"eight": "8",
+	"nine":  "9"}
+var hasNumber, _ = regexp.Compile(`one|two|three|four|five|six|seven|eight|nine|\d`)
+var p = fmt.Println
 
 func check(e error) {
 	if e != nil {
@@ -14,53 +27,57 @@ func check(e error) {
 	}
 }
 
-func firstAndLastDigit(text string) int {
-	firstNumberFound := false
-	fmt.Println(text)
-	var currentVal = []rune{'0', '0'}
-	var stringValue string
-	for _, r := range text {
-		if unicode.IsDigit(r) {
-			if !firstNumberFound {
-				firstNumberFound = true
-				currentVal[0] = r
-			}
-			currentVal[1] = r
-		}
-	}
-	stringValue = string(currentVal[0])
-	stringValue += string(currentVal[1])
-	numberValue, err := strconv.Atoi(stringValue)
-	check(err)
-	return numberValue
+func findFirstAndLastDigit(text string) int {
+	firstDigit := lookaheadFindNumber(text)
+	lastDigit := lookbehindFindNumber(text)
+	twoDigitsNumber, _ := strconv.Atoi(string(firstDigit + lastDigit))
+	p(twoDigitsNumber)
+	return twoDigitsNumber
 }
 
-func hasDigit(text string) bool {
-	for _, r := range text {
-		if unicode.IsDigit(r) {
-			return true
-		}
+func lookaheadFindNumber(text string) string {
+	number := ""
+	i := 1
+	for len(number) == 0 {
+		number = hasNumber.FindString(text[0:i])
+		i++
 	}
-	return false
+	if len(number) > 1 {
+		number = mappedNumbers[number]
+	}
+	return number
+}
+
+func lookbehindFindNumber(text string) string {
+	number := ""
+	i := 1
+	for len(number) == 0 {
+		number = hasNumber.FindString(text[len(text)-i:])
+		i++
+	}
+	if len(number) > 1 {
+		number = mappedNumbers[number]
+	}
+	return number
 }
 
 func main() {
-	readFile, err := os.Open("input.txt")
-	check(err)
-
-	fileScanner := bufio.NewScanner(readFile)
-
-	fileScanner.Split(bufio.ScanLines)
-
 	var calibrationValues []int
 	sumOfCalibrationValues := 0
+
+	readFile, err := os.Open("input.txt")
+	check(err)
+	fileScanner := bufio.NewScanner(readFile)
+	fileScanner.Split(bufio.ScanLines)
+
 	for fileScanner.Scan() {
-		currentValue := firstAndLastDigit(fileScanner.Text())
+		text := fileScanner.Text()
+		currentValue := findFirstAndLastDigit(text)
 		calibrationValues = append(calibrationValues, currentValue)
 	}
 	for i := 0; i < len(calibrationValues); i++ {
 		sumOfCalibrationValues += calibrationValues[i]
 	}
-	fmt.Println("calibration values:", calibrationValues)
-	fmt.Println("sum of calibration values:", sumOfCalibrationValues)
+	p("calibration values:", calibrationValues)
+	p("sum of calibration values:", sumOfCalibrationValues)
 }
