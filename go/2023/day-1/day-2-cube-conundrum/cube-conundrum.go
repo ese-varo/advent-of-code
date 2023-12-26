@@ -11,6 +11,7 @@ import (
 
 var p = fmt.Println
 var findDigit = regexp.MustCompile(`\d+`)
+var colorsRegex = regexp.MustCompile(`blue|red|green`)
 
 func check(e error) {
 	if e != nil {
@@ -25,7 +26,6 @@ func getGameId(text string) int {
 
 func isValidSet(set string) bool {
 	cubesNumber, _ := strconv.Atoi(findDigit.FindString(set))
-	colorsRegex := regexp.MustCompile(`blue|red|green`)
 	switch colorsRegex.FindString(set) {
 	case "red":
 		if cubesNumber > 12 {
@@ -57,9 +57,32 @@ func isValidGame(text string) bool {
 	return true
 }
 
+func getMinimumCubes(sets []string) map[string]int {
+	var minimumCubes = map[string]int{"red": 0, "green": 0, "blue": 0}
+	for i := 0; i < len(sets); i++ {
+		set := s.Split(sets[i], ",")
+		for j := 0; j < len(set); j++ {
+			cubesNumber, _ := strconv.Atoi(findDigit.FindString(set[j]))
+			color := colorsRegex.FindString(set[j])
+			if cubesNumber > minimumCubes[color] {
+				minimumCubes[color] = cubesNumber
+			}
+		}
+	}
+	return minimumCubes
+}
+
+func calculatePower(game string) int {
+	setsString := s.Split(game, ":")[1]
+	sets := s.Split(setsString, ";")
+	minimumCubes := getMinimumCubes(sets)
+	power := minimumCubes["red"] * minimumCubes["green"] * minimumCubes["blue"]
+	return power
+}
+
 func main() {
-	var validGameIds []int
-	sumOfValidGameIds := 0
+	var gamePowers []int
+	sumOfPowers := 0
 	readFile, err := os.Open("input.txt")
 	check(err)
 	fileScanner := bufio.NewScanner(readFile)
@@ -67,14 +90,12 @@ func main() {
 
 	for fileScanner.Scan() {
 		text := fileScanner.Text()
-		if isValidGame(text) {
-			currentGameId := getGameId(text)
-			validGameIds = append(validGameIds, currentGameId)
-		}
+		gamePower := calculatePower(text)
+		gamePowers = append(gamePowers, gamePower)
 	}
 
-	for i := 0; i < len(validGameIds); i++ {
-		sumOfValidGameIds += validGameIds[i]
+	for i := 0; i < len(gamePowers); i++ {
+		sumOfPowers += gamePowers[i]
 	}
-	p("Sum of valid games ids:", sumOfValidGameIds)
+	p("Sum of powers:", sumOfPowers)
 }
